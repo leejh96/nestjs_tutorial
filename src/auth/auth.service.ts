@@ -1,16 +1,61 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { Auth } from './auth.model';
 import { AuthCredentialDto } from './dto/auth-credential.dto';
-import { UserRepository } from './user.repository';
+import { v4 as uuid } from 'uuid';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  constructor(
-    @InjectRepository(UserRepository)
-    private userRepository: UserRepository,
-  ) {}
+  constructor(private jwtService: JwtService){}
 
-  async signUp(authCredentialsDto: AuthCredentialDto): Promise<void> {
-    return this.userRepository.createUser(authCredentialsDto);
+  userDB: Auth[] = [];
+  getAllUser(): Auth[]{
+    return this.userDB;
+  }
+
+  signIn(body: AuthCredentialDto): {
+    code: string;
+    message: string;
+    accessToken: string;
+  } {
+    const { username, password } = body;
+    let matchData = null;
+    this.userDB.forEach((item) => {
+      if (item.username === username && item.password === password) {
+        matchData = {
+          id: item.id,
+          username: item.username,
+        };
+        return;
+      }
+    });
+    if (matchData) {
+      const accessToken = this.jwtService.sign({
+        id: matchData.id,
+        username: matchData.username,
+      });
+      return {
+        code: '200',
+        message: 'success',
+        accessToken,
+      };
+    }
+    throw new BadRequestException('Fail Login');
+  }
+
+  signUp(authCredentialsDto: AuthCredentialDto): void {
+    const { username, password } = authCredentialsDto;
+
+    this.userDB.forEach((item) => {
+      if (item.username === username) {
+        throw new BadRequestException('Username must be Unique Data');
+      }
+    });
+
+    this.userDB.push({
+      id: uuid(),
+      username,
+      password,
+    });
   }
 }
