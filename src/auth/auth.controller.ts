@@ -18,9 +18,19 @@ export class AuthController {
   @Get()
   @UseGuards(AuthGuard())
   getAllUser(@Req() req) {
-    console.log(req);
     return this.authService.getAllUser();
   }
+
+  // @Get('/cache')
+  // async getCache(@Query('id') id : string): Promise<string> {
+  //   const savedTime = await this.cacheManager.get(id);
+  //   if (savedTime) {
+  //     return 'saved time : ' + savedTime;
+  //   }
+  //   const now = new Date().getTime();
+  //   await this.cacheManager.set(id, now, { ttl: 600 });
+  //   return 'save new time : ' + now;
+  // }
 
   @Post('/signin')
   signin(@Body(ValidationPipe) body: AuthCredentialDto) {

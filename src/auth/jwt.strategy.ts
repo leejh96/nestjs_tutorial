@@ -16,7 +16,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   //검증 후에 실행된다?
   validate(payload) {
     // request.user에 들어갈 데이터를 return
-    console.log(payload)
     const { id } = payload;
     let isMatch = false;
 
